@@ -12,6 +12,11 @@ All notable changes to SimpCity Hide Threads are documented here. This file is t
 
 ### Security
 
+## [1.0.1] - 2026-06-25
+
+### Changed
+- Restyled the hidden-thread manager modal to match the vylix dark/red console design.
+
 ## [1.0.0] - 2026-06-24
 
 ### Added

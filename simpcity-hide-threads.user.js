@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SimpCity Hide Threads
 // @namespace    https://github.com/vylix-dev/simpcity-hide-threads
-// @version      1.0.0
+// @version      1.0.1
 // @description  Persistently hide SimpCity threads and manage your hidden-thread list.
 // @author       vylix-dev
 // @license      MIT
@@ -37,28 +37,35 @@
   const THREAD_LINK_SELECTOR = 'a[href*="/threads/"]';
 
   const CSS = String.raw`
+    @import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Teko:wght@500;600;700&display=swap");
+
     .sch-hide-btn {
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
       min-height: 22px !important;
       margin-left: 8px !important;
-      padding: 2px 8px !important;
-      border: 1px solid rgba(248, 113, 113, 0.38) !important;
+      padding: 3px 9px !important;
+      border: 1px solid rgba(255, 77, 77, 0.5) !important;
       border-radius: 999px !important;
-      background: rgba(248, 113, 113, 0.1) !important;
-      color: #fca5a5 !important;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0)),
+        rgba(255, 77, 77, 0.14) !important;
+      color: #fff !important;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055), 0 0 18px rgba(255, 77, 77, 0.08) !important;
       cursor: pointer !important;
-      font: 700 11px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-      transition: opacity 140ms ease, transform 140ms ease, background 140ms ease !important;
+      font: 700 11px/1 Rajdhani, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+      letter-spacing: 0.08em !important;
+      text-transform: uppercase !important;
+      transition: background 120ms ease, border-color 120ms ease, transform 120ms ease !important;
       vertical-align: middle !important;
     }
 
     .sch-hide-btn:hover,
     .sch-hide-btn:focus-visible {
-      background: rgba(248, 113, 113, 0.2) !important;
-      color: #fecaca !important;
-      opacity: 1 !important;
+      border-color: rgba(255, 102, 102, 0.72) !important;
+      background: rgba(255, 77, 77, 0.24) !important;
+      color: #fff !important;
       outline: none !important;
       transform: translateY(-1px) !important;
     }
@@ -70,21 +77,56 @@
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
-      padding: 16px !important;
-      background: rgba(2, 6, 23, 0.72) !important;
-      backdrop-filter: blur(4px) !important;
+      padding: 18px !important;
+      background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.86), rgba(0, 0, 0, 0.58) 48%, rgba(0, 0, 0, 0.82)),
+        radial-gradient(circle at 50% 34%, rgba(255, 77, 77, 0.07), rgba(0, 0, 0, 0.72) 68%, rgba(0, 0, 0, 0.94)) !important;
+      backdrop-filter: blur(5px) !important;
+      animation: sch-fade-in 150ms ease !important;
+    }
+
+    .sch-overlay::before {
+      content: "" !important;
+      position: absolute !important;
+      inset: 0 !important;
+      pointer-events: none !important;
+      opacity: 0.18 !important;
+      background-image: radial-gradient(circle, rgba(255, 255, 255, 0.26) 1px, transparent 1px) !important;
+      background-size: 8px 8px !important;
+      mix-blend-mode: screen !important;
+    }
+
+    @keyframes sch-fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .sch-modal {
+      position: relative !important;
+      z-index: 1 !important;
+      display: flex !important;
+      flex-direction: column !important;
       width: min(720px, 96vw) !important;
       max-height: 88vh !important;
-      overflow: auto !important;
-      border: 1px solid rgba(148, 163, 184, 0.24) !important;
-      border-radius: 16px !important;
-      background: #111827 !important;
-      color: #e5e7eb !important;
-      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7) !important;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+      overflow: hidden !important;
+      border: 1px solid rgba(255, 255, 255, 0.14) !important;
+      border-radius: 10px !important;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0)),
+        rgba(12, 12, 14, 0.92) !important;
+      color: #f2f2f0 !important;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 26px 80px rgba(0, 0, 0, 0.84), 0 0 44px rgba(255, 77, 77, 0.08) !important;
+      backdrop-filter: blur(8px) !important;
+      font-family: Rajdhani, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+      font-size: 15px !important;
+      line-height: 1.4 !important;
+      text-shadow: 0 1px 2px #000 !important;
+      animation: sch-pop 180ms cubic-bezier(0.2, 1.4, 0.4, 1) !important;
+    }
+
+    @keyframes sch-pop {
+      from { transform: translateY(8px) scale(0.97); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
     }
 
     .sch-modal-header,
@@ -92,32 +134,87 @@
       display: flex !important;
       align-items: center !important;
       justify-content: space-between !important;
-      gap: 12px !important;
-      padding: 14px 18px !important;
-      border-bottom: 1px solid rgba(148, 163, 184, 0.16) !important;
+      gap: 14px !important;
+      padding: 18px 18px 14px !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
     }
 
     .sch-modal-footer {
       justify-content: flex-end !important;
-      border-top: 1px solid rgba(148, 163, 184, 0.16) !important;
+      padding: 12px 18px 16px !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.14) !important;
       border-bottom: none !important;
     }
 
     .sch-modal-title {
+      display: flex !important;
+      align-items: center !important;
+      min-width: 0 !important;
+      gap: 12px !important;
+    }
+
+    .sch-modal-mark {
+      flex: 0 0 auto !important;
+      color: #ff4d4d !important;
+      font-family: Teko, Rajdhani, sans-serif !important;
+      font-size: 44px !important;
+      font-weight: 600 !important;
+      letter-spacing: -0.03em !important;
+      line-height: 0.78 !important;
+      text-shadow: 0 0 18px rgba(255, 77, 77, 0.22), 0 1px 2px #000 !important;
+    }
+
+    .sch-modal-kicker {
+      display: block !important;
+      margin: 0 0 3px !important;
+      color: #aaa8a8 !important;
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.16em !important;
+      line-height: 1 !important;
+      text-transform: uppercase !important;
+    }
+
+    .sch-modal-title h2 {
       margin: 0 !important;
-      font-size: 16px !important;
-      font-weight: 800 !important;
+      color: #f2f2f0 !important;
+      font-family: Teko, Rajdhani, sans-serif !important;
+      font-size: 32px !important;
+      font-weight: 600 !important;
+      letter-spacing: 0.015em !important;
+      line-height: 0.9 !important;
+      text-transform: uppercase !important;
     }
 
     .sch-modal-body {
-      padding: 16px 18px !important;
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      overflow-y: auto !important;
+      padding: 14px 18px !important;
+      scrollbar-color: rgba(255, 77, 77, 0.45) rgba(255, 255, 255, 0.06) !important;
     }
 
     .sch-modal-note,
     .sch-empty,
     .sch-thread-meta {
-      color: #9ca3af !important;
+      color: #aaa8a8 !important;
       font-size: 13px !important;
+    }
+
+    .sch-modal-note,
+    .sch-empty {
+      margin: 0 !important;
+      padding: 10px 12px !important;
+      border: 1px solid rgba(255, 255, 255, 0.09) !important;
+      border-radius: 8px !important;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)),
+        rgba(12, 12, 14, 0.58) !important;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045), 0 10px 28px rgba(0, 0, 0, 0.18) !important;
+    }
+
+    .sch-empty {
+      margin-top: 10px !important;
     }
 
     .sch-thread-list {
@@ -133,14 +230,21 @@
       grid-template-columns: minmax(0, 1fr) auto !important;
       gap: 12px !important;
       align-items: center !important;
-      padding: 10px !important;
-      border: 1px solid rgba(148, 163, 184, 0.16) !important;
-      border-radius: 12px !important;
-      background: rgba(15, 23, 42, 0.72) !important;
+      padding: 11px 12px !important;
+      border: 1px solid rgba(255, 255, 255, 0.09) !important;
+      border-radius: 8px !important;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)),
+        rgba(12, 12, 14, 0.58) !important;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045), 0 10px 28px rgba(0, 0, 0, 0.18) !important;
+    }
+
+    .sch-thread-main {
+      min-width: 0 !important;
     }
 
     .sch-thread-link {
-      color: #93c5fd !important;
+      color: #f2f2f0 !important;
       font-weight: 700 !important;
       text-decoration: none !important;
       word-break: break-word !important;
@@ -148,42 +252,99 @@
 
     .sch-thread-link:hover,
     .sch-thread-link:focus-visible {
-      color: #bfdbfe !important;
-      text-decoration: underline !important;
+      color: #ff6666 !important;
+      text-decoration: none !important;
       outline: none !important;
     }
 
+    .sch-thread-meta {
+      margin-top: 3px !important;
+      color: #777575 !important;
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.14em !important;
+      text-transform: uppercase !important;
+    }
+
     .sch-button {
-      min-height: 34px !important;
-      padding: 0 12px !important;
-      border: none !important;
+      min-height: 38px !important;
+      padding: 9px 12px !important;
       border-radius: 8px !important;
       cursor: pointer !important;
-      font: 700 13px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-    }
-
-    .sch-button-primary {
-      background: #60a5fa !important;
-      color: #07111f !important;
-    }
-
-    .sch-button-danger {
-      background: #dc2626 !important;
-      color: #fff !important;
-    }
-
-    .sch-button-ghost {
-      background: rgba(255, 255, 255, 0.1) !important;
-      color: #e5e7eb !important;
+      font: 600 14px/1 Rajdhani, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+      text-align: center !important;
+      transition: background 120ms ease, border-color 120ms ease, color 120ms ease, transform 100ms ease !important;
     }
 
     .sch-button:hover,
     .sch-button:focus-visible {
-      filter: brightness(1.08) !important;
       outline: none !important;
+      transform: translateY(-1px) !important;
+    }
+
+    .sch-button:active {
+      transform: scale(0.98) !important;
+    }
+
+    .sch-button-primary {
+      border: 1px solid rgba(255, 77, 77, 0.5) !important;
+      background: rgba(255, 77, 77, 0.14) !important;
+      color: #fff !important;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 24px rgba(255, 77, 77, 0.08) !important;
+    }
+
+    .sch-button-primary:hover,
+    .sch-button-primary:focus-visible {
+      border-color: rgba(255, 102, 102, 0.72) !important;
+      background: rgba(255, 77, 77, 0.24) !important;
+    }
+
+    .sch-button-danger,
+    .sch-button-ghost {
+      border: 1px solid rgba(255, 255, 255, 0.09) !important;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)),
+        rgba(12, 12, 14, 0.58) !important;
+      color: #f2f2f0 !important;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045), 0 10px 28px rgba(0, 0, 0, 0.18) !important;
+    }
+
+    .sch-button-danger {
+      border-color: rgba(255, 77, 77, 0.45) !important;
+      color: #ff6b6b !important;
+    }
+
+    .sch-button-danger:hover,
+    .sch-button-danger:focus-visible,
+    .sch-button-ghost:hover,
+    .sch-button-ghost:focus-visible {
+      border-color: rgba(255, 255, 255, 0.14) !important;
+      background: rgba(24, 24, 28, 0.72) !important;
+    }
+
+    .sch-button-danger:disabled {
+      cursor: not-allowed !important;
+      opacity: 0.48 !important;
+      transform: none !important;
+    }
+
+    .sch-modal-close {
+      width: 31px !important;
+      min-height: 31px !important;
+      padding: 0 !important;
+      font-size: 20px !important;
+      line-height: 1 !important;
     }
 
     @media (max-width: 620px) {
+      .sch-modal-header {
+        padding: 16px 14px 12px !important;
+      }
+
+      .sch-modal-body {
+        padding: 12px 14px !important;
+      }
+
       .sch-thread-row {
         grid-template-columns: 1fr !important;
       }
@@ -191,16 +352,23 @@
       .sch-modal-footer {
         align-items: stretch !important;
         flex-direction: column !important;
+        padding-inline: 14px !important;
       }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .sch-hide-btn {
+      .sch-hide-btn,
+      .sch-overlay,
+      .sch-modal,
+      .sch-button {
+        animation: none !important;
         transition: none !important;
       }
 
       .sch-hide-btn:hover,
-      .sch-hide-btn:focus-visible {
+      .sch-hide-btn:focus-visible,
+      .sch-button:hover,
+      .sch-button:focus-visible {
         transform: none !important;
       }
     }
@@ -538,11 +706,19 @@
       },
     });
 
-    const title = createElement('h2', { id: titleId, className: 'sch-modal-title', textContent: 'Hidden Threads' });
+    const title = createElement('div', { className: 'sch-modal-title' }, [
+      createElement('span', { className: 'sch-modal-mark', textContent: 'SC' }),
+      createElement('div', {}, [
+        createElement('span', { className: 'sch-modal-kicker', textContent: 'Hide Threads' }),
+        createElement('h2', { id: titleId, textContent: 'Hidden Threads' }),
+      ]),
+    ]);
     const closeButton = createElement('button', {
       type: 'button',
-      className: 'sch-button sch-button-ghost',
-      textContent: 'Close',
+      className: 'sch-button sch-button-ghost sch-modal-close',
+      textContent: '×',
+      title: 'Close manager',
+      attributes: { 'aria-label': 'Close manager' },
     });
     const body = createElement('div', { className: 'sch-modal-body' });
     const clearButton = createElement('button', {
@@ -588,7 +764,7 @@
           });
 
           return createElement('li', { className: 'sch-thread-row' }, [
-            createElement('div', {}, [link, meta]),
+            createElement('div', { className: 'sch-thread-main' }, [link, meta]),
             unhideButton,
           ]);
         });
