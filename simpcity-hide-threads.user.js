@@ -259,7 +259,7 @@
     .sch-donation-section {
       display: grid !important;
       gap: 10px !important;
-      margin-top: 10px !important;
+      margin: 0 18px 16px !important;
       padding: 10px 12px !important;
       border: 1px solid rgba(255, 77, 77, 0.24) !important;
       border-radius: 8px !important;
@@ -957,7 +957,6 @@
           className: 'sch-modal-note',
           textContent: 'Hidden threads are stored locally by Tampermonkey. Export a JSON backup before changing browsers, then import it in the new browser to merge the same hidden list.',
         }),
-        createDonationSection(),
       ];
 
       if (statusMessage) {
@@ -1066,6 +1065,7 @@
         createElement('div', { className: 'sch-modal-actions' }, [importButton, exportButton, importInput]),
         createElement('div', { className: 'sch-modal-actions' }, [clearButton]),
       ]),
+      createDonationSection(),
     );
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
