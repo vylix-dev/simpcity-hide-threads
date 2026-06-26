@@ -12,6 +12,11 @@ All notable changes to SimpCity Hide Threads are documented here. This file is t
 
 ### Security
 
+## [1.1.4] - 2026-06-26
+
+### Changed
+- Added vylix logo metadata so Tampermonkey dashboard entries use the project icon.
+
 ## [1.1.3] - 2026-06-26
 
 ### Changed
