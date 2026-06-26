@@ -12,6 +12,11 @@ All notable changes to SimpCity Hide Threads are documented here. This file is t
 
 ### Security
 
+## [1.1.5] - 2026-06-26
+
+### Changed
+- Switched Tampermonkey dashboard icon metadata from SVG to PNG assets for reliable rendering.
+
 ## [1.1.4] - 2026-06-26
 
 ### Changed
