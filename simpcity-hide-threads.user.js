@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SimpCity Hide Threads
 // @namespace    https://github.com/vylix-dev/simpcity-hide-threads
-// @version      1.1.0
+// @version      1.1.1
 // @description  Persistently hide SimpCity threads and manage your hidden-thread list.
 // @author       vylix-dev
 // @license      MIT
@@ -45,9 +45,11 @@
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
-      min-height: 22px !important;
+      box-sizing: border-box !important;
+      min-width: 46px !important;
+      min-height: 24px !important;
       margin-left: 8px !important;
-      padding: 3px 9px !important;
+      padding: 0 11px !important;
       border: 1px solid rgba(255, 77, 77, 0.5) !important;
       border-radius: 999px !important;
       background:
@@ -55,10 +57,14 @@
         rgba(255, 77, 77, 0.14) !important;
       color: #fff !important;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055), 0 0 18px rgba(255, 77, 77, 0.08) !important;
+      appearance: none !important;
       cursor: pointer !important;
       font: 700 11px/1 Rajdhani, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
       letter-spacing: 0.08em !important;
+      text-align: center !important;
+      text-indent: 0.08em !important;
       text-transform: uppercase !important;
+      white-space: nowrap !important;
       transition: background 120ms ease, border-color 120ms ease, transform 120ms ease !important;
       vertical-align: middle !important;
     }

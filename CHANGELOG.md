@@ -12,6 +12,11 @@ All notable changes to SimpCity Hide Threads are documented here. This file is t
 
 ### Security
 
+## [1.1.1] - 2026-06-26
+
+### Fixed
+- Centered the inline Hide button label inside its red pill control.
+
 ## [1.1.0] - 2026-06-26
 
 ### Added
