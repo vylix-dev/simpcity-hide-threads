@@ -12,6 +12,12 @@ All notable changes to SimpCity Hide Threads are documented here. This file is t
 
 ### Security
 
+## [1.1.7] - 2026-06-26
+
+### Added
+- Added an undo toast after hiding a thread.
+- Added a visible hidden-thread count to the manager modal.
+
 ## [1.1.6] - 2026-06-26
 
 ### Fixed

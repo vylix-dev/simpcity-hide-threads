@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SimpCity Hide Threads
 // @namespace    https://github.com/vylix-dev/simpcity-hide-threads
-// @version      1.1.6
+// @version      1.1.7
 // @description  Persistently hide SimpCity threads and manage your hidden-thread list.
 // @author       vylix-dev
 // @license      MIT

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SimpCity Hide Threads
 // @namespace    https://github.com/vylix-dev/simpcity-hide-threads
-// @version      1.1.6
+// @version      1.1.7
 // @description  Persistently hide SimpCity threads and manage your hidden-thread list.
 // @author       vylix-dev
 // @license      MIT
@@ -101,6 +101,73 @@
       color: #fff !important;
       outline: none !important;
       transform: translateY(-1px) !important;
+    }
+
+    .sch-undo-toast {
+      position: fixed !important;
+      right: 18px !important;
+      bottom: 18px !important;
+      z-index: 2147483646 !important;
+      display: grid !important;
+      grid-template-columns: minmax(0, 1fr) auto !important;
+      gap: 10px !important;
+      width: min(420px, calc(100vw - 36px)) !important;
+      padding: 12px !important;
+      border: 1px solid rgba(255, 77, 77, 0.34) !important;
+      border-radius: 10px !important;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0)),
+        rgba(12, 12, 14, 0.94) !important;
+      color: #f2f2f0 !important;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055), 0 18px 42px rgba(0, 0, 0, 0.58), 0 0 24px rgba(255, 77, 77, 0.1) !important;
+      backdrop-filter: blur(8px) !important;
+      font-family: Rajdhani, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+      text-shadow: 0 1px 2px #000 !important;
+      animation: sch-toast-in 160ms ease !important;
+    }
+
+    @keyframes sch-toast-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .sch-undo-toast-main {
+      min-width: 0 !important;
+    }
+
+    .sch-undo-toast-kicker {
+      display: block !important;
+      margin-bottom: 3px !important;
+      color: #aaa8a8 !important;
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.16em !important;
+      line-height: 1 !important;
+      text-transform: uppercase !important;
+    }
+
+    .sch-undo-toast-title {
+      display: block !important;
+      overflow: hidden !important;
+      color: #f2f2f0 !important;
+      font-size: 14px !important;
+      font-weight: 700 !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+    }
+
+    .sch-undo-toast-actions {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+    }
+
+    .sch-undo-toast-close {
+      width: 30px !important;
+      min-width: 30px !important;
+      min-height: 30px !important;
+      padding: 0 !important;
+      font-size: 18px !important;
     }
 
     .sch-overlay {
@@ -248,6 +315,7 @@
 
     .sch-modal-note,
     .sch-modal-status,
+    .sch-hidden-count,
     .sch-empty,
     .sch-thread-meta {
       color: #aaa8a8 !important;
@@ -256,6 +324,7 @@
 
     .sch-modal-note,
     .sch-modal-status,
+    .sch-hidden-count,
     .sch-empty {
       margin: 0 !important;
       padding: 10px 12px !important;
@@ -269,6 +338,25 @@
 
     .sch-empty {
       margin-top: 10px !important;
+    }
+
+    .sch-hidden-count {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 10px !important;
+      margin-top: 10px !important;
+      border-color: rgba(255, 77, 77, 0.3) !important;
+      color: #f2f2f0 !important;
+      font-weight: 700 !important;
+    }
+
+    .sch-hidden-count strong {
+      color: #ff4d4d !important;
+      font-family: Teko, Rajdhani, sans-serif !important;
+      font-size: 25px !important;
+      font-weight: 600 !important;
+      line-height: 0.9 !important;
     }
 
     .sch-modal-status {
@@ -471,6 +559,7 @@
       .sch-hide-btn,
       .sch-overlay,
       .sch-modal,
+      .sch-undo-toast,
       .sch-button {
         animation: none !important;
         transition: none !important;
@@ -487,6 +576,8 @@
 
   let initialized = false;
   let scanQueued = false;
+  let undoToast = null;
+  let undoToastTimer = null;
 
   function isPlainObject(value) {
     return Object.prototype.toString.call(value) === '[object Object]';
@@ -791,6 +882,58 @@
     return [];
   }
 
+  function dismissUndoToast() {
+    if (undoToastTimer) {
+      window.clearTimeout(undoToastTimer);
+      undoToastTimer = null;
+    }
+
+    if (undoToast) {
+      undoToast.remove();
+      undoToast = null;
+    }
+  }
+
+  function showUndoToast(info) {
+    dismissUndoToast();
+
+    const undoButton = createElement('button', {
+      type: 'button',
+      className: 'sch-button sch-button-primary',
+      textContent: 'Undo',
+      title: `Undo hiding ${info.title}`,
+      onclick: () => {
+        removeHidden(info.id);
+        dismissUndoToast();
+      },
+    });
+    const closeButton = createElement('button', {
+      type: 'button',
+      className: 'sch-button sch-button-ghost sch-undo-toast-close',
+      textContent: '×',
+      title: 'Dismiss undo notification',
+      attributes: { 'aria-label': 'Dismiss undo notification' },
+      onclick: dismissUndoToast,
+    });
+
+    undoToast = createElement('div', {
+      className: 'sch-undo-toast',
+      attributes: {
+        role: 'status',
+        'aria-live': 'polite',
+      },
+    }, [
+      createElement('div', { className: 'sch-undo-toast-main' }, [
+        createElement('span', { className: 'sch-undo-toast-kicker', textContent: 'Thread hidden' }),
+        createElement('span', { className: 'sch-undo-toast-title', textContent: info.title }),
+      ]),
+      createElement('div', { className: 'sch-undo-toast-actions' }, [undoButton, closeButton]),
+    ]);
+
+    document.body.appendChild(undoToast);
+    undoToastTimer = window.setTimeout(dismissUndoToast, 8000);
+  }
+
   function refreshThreadVisibility(list = loadHidden()) {
     const hiddenIds = new Set(normalizeHiddenList(list).map((item) => item.id));
 
@@ -868,6 +1011,7 @@
         event.stopPropagation();
         addHidden(info);
         hideRow(row);
+        showUndoToast(info);
       },
     });
 
@@ -998,11 +1142,19 @@
     }
 
     function renderList() {
+      const countLabel = list.length === 1 ? 'hidden thread' : 'hidden threads';
       const children = [
         createElement('p', {
           className: 'sch-modal-note',
           textContent: 'Hidden threads are stored locally by Tampermonkey. Export a JSON backup before changing browsers, then import it in the new browser to merge the same hidden list.',
         }),
+        createElement('div', {
+          className: 'sch-hidden-count',
+          attributes: { 'aria-label': `${list.length} ${countLabel}` },
+        }, [
+          createElement('span', { textContent: 'Currently hidden' }),
+          createElement('strong', { textContent: String(list.length) }),
+        ]),
       ];
 
       if (statusMessage) {
