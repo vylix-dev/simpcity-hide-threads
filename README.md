@@ -23,7 +23,13 @@ Keep `@version` in `simpcity-hide-threads.user.js`, `simpcity-hide-threads.meta.
 - Stores hidden threads under the existing `simpcity_hidden_threads_v1` key.
 - Hides matching threads on current and dynamically inserted thread lists.
 - Provides a Tampermonkey menu command for managing hidden threads.
+- Exports hidden threads to a JSON backup for browser/profile migration.
+- Imports JSON backups and merges valid hidden-thread entries without duplicating existing thread IDs.
 - Rebuilds the manager modal with safe DOM construction, no stored-data `innerHTML`, a duplicate-modal guard, and keyboard close/focus handling.
+
+## Backup and transfer
+
+Open the hidden-thread manager from the Tampermonkey menu, then use **Export** to download a `simpcity-hidden-threads-YYYY-MM-DD.json` backup. On another browser or profile, install the script, open the manager, and use **Import** to merge that backup into the local hidden list.
 
 ## Split from infinite scroll
 

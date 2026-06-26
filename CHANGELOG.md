@@ -12,6 +12,11 @@ All notable changes to SimpCity Hide Threads are documented here. This file is t
 
 ### Security
 
+## [1.1.0] - 2026-06-26
+
+### Added
+- Added JSON export and import controls to the hidden-thread manager for moving hidden-thread lists between browsers or profiles.
+
 ## [1.0.1] - 2026-06-25
 
 ### Changed

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SimpCity Hide Threads
 // @namespace    https://github.com/vylix-dev/simpcity-hide-threads
-// @version      1.0.1
+// @version      1.1.0
 // @description  Persistently hide SimpCity threads and manage your hidden-thread list.
 // @author       vylix-dev
 // @license      MIT
@@ -31,6 +31,8 @@
     name: 'SimpCity Hide Threads',
     storageKey: 'simpcity_hidden_threads_v1',
   });
+
+  const BACKUP_SCHEMA = 'vylix.simpcity-hide-threads.hidden-threads.v1';
 
   const THREAD_ROW_SELECTOR = '.structItem--thread, .structItem';
   const UNPROCESSED_THREAD_SELECTOR = '.structItem--thread:not([data-sch-processed]), .structItem:not([data-sch-processed])';
@@ -140,10 +142,22 @@
     }
 
     .sch-modal-footer {
-      justify-content: flex-end !important;
+      justify-content: space-between !important;
+      flex-wrap: wrap !important;
       padding: 12px 18px 16px !important;
       border-top: 1px solid rgba(255, 255, 255, 0.14) !important;
       border-bottom: none !important;
+    }
+
+    .sch-modal-actions {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      align-items: center !important;
+      gap: 10px !important;
+    }
+
+    .sch-file-input {
+      display: none !important;
     }
 
     .sch-modal-title {
@@ -195,6 +209,7 @@
     }
 
     .sch-modal-note,
+    .sch-modal-status,
     .sch-empty,
     .sch-thread-meta {
       color: #aaa8a8 !important;
@@ -202,6 +217,7 @@
     }
 
     .sch-modal-note,
+    .sch-modal-status,
     .sch-empty {
       margin: 0 !important;
       padding: 10px 12px !important;
@@ -215,6 +231,22 @@
 
     .sch-empty {
       margin-top: 10px !important;
+    }
+
+    .sch-modal-status {
+      margin-top: 10px !important;
+      border-color: rgba(255, 77, 77, 0.3) !important;
+      color: #f2f2f0 !important;
+    }
+
+    .sch-modal-status[data-sch-tone="error"] {
+      border-color: rgba(255, 77, 77, 0.56) !important;
+      color: #ff8a8a !important;
+    }
+
+    .sch-modal-status[data-sch-tone="success"] {
+      border-color: rgba(91, 214, 128, 0.42) !important;
+      color: #bcf3cc !important;
     }
 
     .sch-thread-list {
@@ -322,7 +354,7 @@
       background: rgba(24, 24, 28, 0.72) !important;
     }
 
-    .sch-button-danger:disabled {
+    .sch-button:disabled {
       cursor: not-allowed !important;
       opacity: 0.48 !important;
       transform: none !important;
@@ -349,10 +381,15 @@
         grid-template-columns: 1fr !important;
       }
 
-      .sch-modal-footer {
+      .sch-modal-footer,
+      .sch-modal-actions {
         align-items: stretch !important;
         flex-direction: column !important;
         padding-inline: 14px !important;
+      }
+
+      .sch-modal-actions {
+        padding-inline: 0 !important;
       }
     }
 
@@ -394,7 +431,8 @@
     if (!id) return null;
 
     const title = typeof item.title === 'string' && item.title.trim() ? item.title.trim() : `Thread #${id}`;
-    const url = normalizeThreadUrl(typeof item.url === 'string' && item.url.trim() ? item.url.trim() : `/threads/${id}/`);
+    const fallbackUrl = getThreadUrlFallback(id);
+    const url = normalizeThreadUrl(typeof item.url === 'string' && item.url.trim() ? item.url.trim() : fallbackUrl, fallbackUrl);
 
     return { id, title, url };
   }
@@ -413,6 +451,49 @@
     });
 
     return list;
+  }
+
+  function createBackupPayload(list) {
+    const threads = normalizeHiddenList(list);
+    return {
+      schema: BACKUP_SCHEMA,
+      app: APP.name,
+      storageKey: APP.storageKey,
+      exportedAt: new Date().toISOString(),
+      count: threads.length,
+      threads,
+    };
+  }
+
+  function getImportSource(parsed) {
+    if (Array.isArray(parsed)) return parsed;
+    if (!isPlainObject(parsed)) return null;
+
+    if (Array.isArray(parsed.threads)) return parsed.threads;
+    if (Array.isArray(parsed.hiddenThreads)) return parsed.hiddenThreads;
+    if (Array.isArray(parsed.items)) return parsed.items;
+    if (Array.isArray(parsed.data)) return parsed.data;
+    return null;
+  }
+
+  function parseHiddenBackup(text) {
+    const parsed = JSON.parse(String(text || ''));
+    const source = getImportSource(parsed);
+    if (!source) throw new Error('No hidden-thread list found in the selected file.');
+
+    const list = normalizeHiddenList(source);
+    if (source.length > 0 && list.length === 0) throw new Error('No valid SimpCity thread entries were found in the selected file.');
+    return list;
+  }
+
+  function mergeHiddenLists(currentList, importedList) {
+    const current = normalizeHiddenList(currentList);
+    const imported = normalizeHiddenList(importedList);
+    const currentIds = new Set(current.map((item) => item.id));
+    const next = normalizeHiddenList([...current, ...imported]);
+    const added = next.filter((item) => !currentIds.has(item.id)).length;
+
+    return { list: next, added, imported: imported.length };
   }
 
   function parseStoredValue(value) {
@@ -549,18 +630,26 @@
     return match ? toThreadId(match[1]) : null;
   }
 
-  function normalizeThreadUrl(href) {
+  function getThreadUrlFallback(id) {
+    const currentOrigin = window.location && /^https:\/\/(?:[^/]+\.)?simpcity\.(?:su|cr)$/i.test(window.location.origin)
+      ? window.location.origin
+      : 'https://simpcity.su';
+
+    return `${currentOrigin}/threads/${id}/`;
+  }
+
+  function normalizeThreadUrl(href, fallback = window.location.href) {
     try {
-      const url = new URL(href || window.location.href, window.location.href);
+      const url = new URL(href || fallback, fallback);
       const hostname = url.hostname.toLowerCase();
       const allowedHost = hostname === 'simpcity.su' ||
         hostname.endsWith('.simpcity.su') ||
         hostname === 'simpcity.cr' ||
         hostname.endsWith('.simpcity.cr');
 
-      return url.protocol === 'https:' && allowedHost ? url.href : window.location.href;
+      return url.protocol === 'https:' && allowedHost ? url.href : fallback;
     } catch (_error) {
-      return window.location.href;
+      return fallback;
     }
   }
 
@@ -612,6 +701,49 @@
     previous.forEach((item) => revealRows(item.id));
     queueScan();
     return [];
+  }
+
+  function refreshThreadVisibility(list = loadHidden()) {
+    const hiddenIds = new Set(normalizeHiddenList(list).map((item) => item.id));
+
+    document.querySelectorAll('[data-sch-thread-id]').forEach((row) => {
+      const id = toThreadId(row.dataset.schThreadId);
+      if (!id) return;
+
+      if (hiddenIds.has(id)) {
+        hideRow(row);
+        row.dataset.schProcessed = 'true';
+      } else if (row.dataset.schHidden === 'true') {
+        row.style.removeProperty('display');
+        delete row.dataset.schHidden;
+        delete row.dataset.schProcessed;
+      }
+    });
+  }
+
+  function downloadHiddenBackup(list) {
+    const payload = JSON.stringify(createBackupPayload(list), null, 2);
+    const filename = `simpcity-hidden-threads-${new Date().toISOString().slice(0, 10)}.json`;
+    const link = document.createElement('a');
+    link.download = filename;
+    link.rel = 'noreferrer';
+
+    let objectUrl = null;
+    if (typeof Blob === 'function' && window.URL && typeof window.URL.createObjectURL === 'function') {
+      const blob = new Blob([payload], { type: 'application/json' });
+      objectUrl = window.URL.createObjectURL(blob);
+      link.href = objectUrl;
+    } else {
+      link.href = `data:application/json;charset=utf-8,${encodeURIComponent(payload)}`;
+    }
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    if (objectUrl) {
+      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
+    }
   }
 
   function addHideButton(row, info) {
@@ -721,6 +853,27 @@
       attributes: { 'aria-label': 'Close manager' },
     });
     const body = createElement('div', { className: 'sch-modal-body' });
+    let statusMessage = '';
+    let statusTone = 'info';
+
+    const importInput = createElement('input', {
+      type: 'file',
+      className: 'sch-file-input',
+      accept: 'application/json,.json',
+      attributes: { 'aria-label': 'Import hidden threads backup' },
+    });
+    const importButton = createElement('button', {
+      type: 'button',
+      className: 'sch-button sch-button-ghost',
+      textContent: 'Import',
+      title: 'Import a hidden-thread JSON backup',
+    });
+    const exportButton = createElement('button', {
+      type: 'button',
+      className: 'sch-button sch-button-primary',
+      textContent: 'Export',
+      title: 'Download hidden threads as a JSON backup',
+    });
     const clearButton = createElement('button', {
       type: 'button',
       className: 'sch-button sch-button-danger',
@@ -733,13 +886,31 @@
       if (previousActiveElement) previousActiveElement.focus();
     }
 
+    function setStatus(message, tone = 'info') {
+      statusMessage = message;
+      statusTone = tone;
+      renderList();
+    }
+
     function renderList() {
       const children = [
         createElement('p', {
           className: 'sch-modal-note',
-          textContent: 'Hidden threads are stored locally by Tampermonkey and apply across SimpCity pages.',
+          textContent: 'Hidden threads are stored locally by Tampermonkey. Export a JSON backup before changing browsers, then import it in the new browser to merge the same hidden list.',
         }),
       ];
+
+      if (statusMessage) {
+        children.push(createElement('p', {
+          className: 'sch-modal-status',
+          textContent: statusMessage,
+          attributes: {
+            role: 'status',
+            'aria-live': 'polite',
+            'data-sch-tone': statusTone,
+          },
+        }));
+      }
 
       if (!list.length) {
         children.push(createElement('p', { className: 'sch-empty', textContent: 'No threads are currently hidden.' }));
@@ -773,6 +944,7 @@
       }
 
       body.replaceChildren(...children);
+      exportButton.disabled = list.length === 0;
       clearButton.disabled = list.length === 0;
     }
 
@@ -786,11 +958,42 @@
     }
 
     closeButton.addEventListener('click', closeModal);
+    importButton.addEventListener('click', () => importInput.click());
+    exportButton.addEventListener('click', () => {
+      if (!list.length) return;
+      downloadHiddenBackup(list);
+      setStatus(`Exported ${list.length} hidden ${list.length === 1 ? 'thread' : 'threads'} to a JSON backup.`, 'success');
+    });
+    importInput.addEventListener('change', () => {
+      const file = importInput.files && importInput.files[0];
+      importInput.value = '';
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const importedList = parseHiddenBackup(reader.result);
+          const merged = mergeHiddenLists(list, importedList);
+          list = merged.list;
+          saveHidden(list);
+          refreshThreadVisibility(list);
+          queueScan();
+          setStatus(
+            `Imported ${merged.imported} valid ${merged.imported === 1 ? 'thread' : 'threads'}; added ${merged.added} new ${merged.added === 1 ? 'entry' : 'entries'}.`,
+            'success',
+          );
+        } catch (error) {
+          setStatus(`Import failed: ${error && error.message ? error.message : 'The selected file is not valid JSON.'}`, 'error');
+        }
+      };
+      reader.onerror = () => setStatus('Import failed: the selected file could not be read.', 'error');
+      reader.readAsText(file);
+    });
     clearButton.addEventListener('click', () => {
       if (!list.length) return;
       if (!window.confirm('Clear all hidden threads? This cannot be undone.')) return;
       list = clearHidden();
-      renderList();
+      setStatus('Cleared all hidden threads from this browser.', 'success');
     });
     overlay.addEventListener('click', (event) => {
       if (event.target === overlay) closeModal();
@@ -799,7 +1002,10 @@
     modal.append(
       createElement('div', { className: 'sch-modal-header' }, [title, closeButton]),
       body,
-      createElement('div', { className: 'sch-modal-footer' }, [clearButton]),
+      createElement('div', { className: 'sch-modal-footer' }, [
+        createElement('div', { className: 'sch-modal-actions' }, [importButton, exportButton, importInput]),
+        createElement('div', { className: 'sch-modal-actions' }, [clearButton]),
+      ]),
     );
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
