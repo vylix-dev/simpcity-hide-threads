@@ -33,6 +33,7 @@
   });
 
   const BACKUP_SCHEMA = 'vylix.simpcity-hide-threads.hidden-threads.v1';
+  const DONATION_URL = 'https://ko-fi.com/vylix';
 
   const THREAD_ROW_SELECTOR = '.structItem--thread, .structItem';
   const UNPROCESSED_THREAD_SELECTOR = '.structItem--thread:not([data-sch-processed]), .structItem:not([data-sch-processed])';
@@ -255,6 +256,38 @@
       color: #bcf3cc !important;
     }
 
+    .sch-donation-section {
+      display: grid !important;
+      gap: 10px !important;
+      margin-top: 10px !important;
+      padding: 10px 12px !important;
+      border: 1px solid rgba(255, 77, 77, 0.24) !important;
+      border-radius: 8px !important;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0)),
+        rgba(255, 77, 77, 0.08) !important;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045), 0 10px 28px rgba(0, 0, 0, 0.18), 0 0 22px rgba(255, 77, 77, 0.06) !important;
+    }
+
+    .sch-donation-copy {
+      margin: 0 !important;
+      color: #aaa8a8 !important;
+      font-size: 13px !important;
+    }
+
+    .sch-donation-copy strong {
+      color: #f2f2f0 !important;
+      font-weight: 700 !important;
+    }
+
+    .sch-button-donate {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: fit-content !important;
+      text-decoration: none !important;
+    }
+
     .sch-thread-list {
       display: grid !important;
       gap: 10px !important;
@@ -396,6 +429,10 @@
 
       .sch-modal-actions {
         padding-inline: 0 !important;
+      }
+
+      .sch-button-donate {
+        width: 100% !important;
       }
     }
 
@@ -727,6 +764,22 @@
     });
   }
 
+  function createDonationSection() {
+    return createElement('div', { className: 'sch-donation-section' }, [
+      createElement('p', { className: 'sch-donation-copy' }, [
+        createElement('strong', { textContent: 'Enjoying the script?' }),
+        ' Support vylix development and future updates.',
+      ]),
+      createElement('a', {
+        className: 'sch-button sch-button-primary sch-button-donate',
+        href: DONATION_URL,
+        target: '_blank',
+        rel: 'noreferrer',
+        textContent: 'Support on Ko-fi',
+      }),
+    ]);
+  }
+
   function downloadHiddenBackup(list) {
     const payload = JSON.stringify(createBackupPayload(list), null, 2);
     const filename = `simpcity-hidden-threads-${new Date().toISOString().slice(0, 10)}.json`;
@@ -904,6 +957,7 @@
           className: 'sch-modal-note',
           textContent: 'Hidden threads are stored locally by Tampermonkey. Export a JSON backup before changing browsers, then import it in the new browser to merge the same hidden list.',
         }),
+        createDonationSection(),
       ];
 
       if (statusMessage) {
