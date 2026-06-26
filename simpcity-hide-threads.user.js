@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SimpCity Hide Threads
 // @namespace    https://github.com/vylix-dev/simpcity-hide-threads
-// @version      1.1.2
+// @version      1.1.3
 // @description  Persistently hide SimpCity threads and manage your hidden-thread list.
 // @author       vylix-dev
 // @license      MIT
@@ -34,6 +34,7 @@
 
   const BACKUP_SCHEMA = 'vylix.simpcity-hide-threads.hidden-threads.v1';
   const DONATION_URL = 'https://ko-fi.com/vylix';
+  const LOGO_PATH = 'M 512.50 802.06 C473.23,795.69 443.36,760.28 422.19,695.00 C416.37,677.05 409.33,650.22 400.54,612.45 C383.02,537.19 375.01,511.16 360.25,481.57 C340.74,442.44 310.85,412.01 276.66,396.46 L 271.50 394.12 L 275.87 394.06 C282.30,393.97 303.95,398.58 315.94,402.58 C336.56,409.47 360.37,422.84 379.50,438.29 C395.48,451.19 416.70,474.82 429.98,494.50 C443.91,515.13 459.88,544.87 473.66,575.86 C477.24,583.91 488.70,611.65 499.14,637.50 C531.09,716.66 544.06,739.87 561.11,748.37 C567.29,751.45 575.88,751.91 581.71,749.48 C587.71,746.97 588.26,746.18 586.10,743.14 C582.75,738.42 574.14,720.71 570.96,712.00 C569.26,707.33 566.70,698.33 565.28,692.00 C563.03,682.00 562.69,678.15 562.66,662.50 C562.64,646.65 562.96,642.99 565.34,631.87 C577.62,574.51 613.61,518.79 723.49,387.00 C763.19,339.37 774.42,324.54 782.29,309.31 C793.51,287.58 792.14,269.82 778.79,263.96 C774.35,262.01 771.81,261.64 763.00,261.65 C745.18,261.66 722.81,267.04 684.50,280.53 C630.01,299.70 600.98,306.09 550.00,310.13 C531.23,311.62 473.62,311.58 444.00,310.07 C384.84,307.05 332.91,307.65 311.57,311.61 C276.75,318.07 254.99,331.66 244.51,353.50 C238.60,365.82 237.63,370.78 238.27,385.38 C239.15,405.16 244.30,420.50 263.97,461.98 C269.58,473.79 278.57,492.01 283.95,502.48 C308.05,549.34 317.25,567.46 316.69,566.95 C316.35,566.65 308.95,555.63 300.23,542.45 C282.46,515.57 263.38,487.93 242.64,459.00 C206.27,408.27 198.23,395.94 188.89,376.50 C176.08,349.85 173.00,326.01 179.49,303.64 C190.40,265.97 224.39,238.96 275.12,227.62 C296.07,222.93 309.44,221.62 336.50,221.60 C381.96,221.56 416.88,226.63 498.00,245.01 C577.86,263.10 599.30,266.44 635.00,266.32 C658.75,266.25 666.64,265.36 718.00,257.01 C762.73,249.73 773.24,248.58 788.00,249.34 C801.77,250.04 808.71,251.74 819.90,257.14 C835.74,264.79 846.27,278.56 851.13,297.97 C852.98,305.34 853.19,308.40 852.76,321.47 C852.06,342.61 848.39,355.71 836.95,378.00 C827.05,397.28 818.14,409.56 775.92,462.14 C738.26,509.04 716.55,538.29 694.76,571.50 C670.71,608.14 657.69,631.56 622.81,700.93 C596.05,754.14 590.46,763.86 580.07,775.19 C568.98,787.29 553.68,796.85 539.74,800.42 C532.40,802.30 518.97,803.11 512.50,802.06 Z';
 
   const THREAD_ROW_SELECTOR = '.structItem--thread, .structItem';
   const UNPROCESSED_THREAD_SELECTOR = '.structItem--thread:not([data-sch-processed]), .structItem:not([data-sch-processed])';
@@ -175,14 +176,21 @@
     }
 
     .sch-modal-mark {
+      display: inline-flex !important;
       flex: 0 0 auto !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 47px !important;
+      height: 47px !important;
       color: #ff4d4d !important;
-      font-family: Teko, Rajdhani, sans-serif !important;
-      font-size: 44px !important;
-      font-weight: 600 !important;
-      letter-spacing: -0.03em !important;
-      line-height: 0.78 !important;
-      text-shadow: 0 0 18px rgba(255, 77, 77, 0.22), 0 1px 2px #000 !important;
+      filter: drop-shadow(0 0 18px rgba(255, 77, 77, 0.22)) drop-shadow(0 1px 2px #000) !important;
+    }
+
+    .sch-modal-mark svg {
+      display: block !important;
+      width: 100% !important;
+      height: 100% !important;
+      fill: currentColor !important;
     }
 
     .sch-modal-kicker {
@@ -668,6 +676,20 @@
     return node;
   }
 
+  function createLogoMark(className) {
+    const mark = createElement('span', { className, attributes: { 'aria-hidden': 'true' } });
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 1024 1024');
+    svg.setAttribute('focusable', 'false');
+
+    const logoPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    logoPath.setAttribute('d', LOGO_PATH);
+    logoPath.setAttribute('fill', 'currentColor');
+    svg.appendChild(logoPath);
+    mark.appendChild(svg);
+    return mark;
+  }
+
   function getThreadId(href) {
     const match = String(href || '').match(/\/threads\/(?:[^/]+\.)?(\d+)(?:[/?#]|$)/i);
     return match ? toThreadId(match[1]) : null;
@@ -898,7 +920,7 @@
     });
 
     const title = createElement('div', { className: 'sch-modal-title' }, [
-      createElement('span', { className: 'sch-modal-mark', textContent: 'SC' }),
+      createLogoMark('sch-modal-mark'),
       createElement('div', {}, [
         createElement('span', { className: 'sch-modal-kicker', textContent: 'Hide Threads' }),
         createElement('h2', { id: titleId, textContent: 'Hidden Threads' }),

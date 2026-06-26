@@ -12,6 +12,11 @@ All notable changes to SimpCity Hide Threads are documented here. This file is t
 
 ### Security
 
+## [1.1.3] - 2026-06-26
+
+### Changed
+- Added the vylix logo to the Hide Threads manager modal header.
+
 ## [1.1.1] - 2026-06-26
 
 ### Fixed
