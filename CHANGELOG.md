@@ -12,6 +12,11 @@ All notable changes to SimpCity Hide Threads are documented here. This file is t
 
 ### Security
 
+## [1.1.8] - 2026-06-26
+
+### Fixed
+- Centered the Undo and dismiss labels inside the hide undo toast buttons.
+
 ## [1.1.7] - 2026-06-26
 
 ### Added

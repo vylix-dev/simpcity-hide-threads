@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SimpCity Hide Threads
 // @namespace    https://github.com/vylix-dev/simpcity-hide-threads
-// @version      1.1.7
+// @version      1.1.8
 // @description  Persistently hide SimpCity threads and manage your hidden-thread list.
 // @author       vylix-dev
 // @license      MIT
@@ -162,12 +162,26 @@
       gap: 8px !important;
     }
 
+    .sch-undo-toast-actions .sch-button {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      box-sizing: border-box !important;
+      min-height: 30px !important;
+      height: 30px !important;
+      padding: 0 12px !important;
+      line-height: 1 !important;
+    }
+
     .sch-undo-toast-close {
       width: 30px !important;
       min-width: 30px !important;
       min-height: 30px !important;
+      height: 30px !important;
       padding: 0 !important;
       font-size: 18px !important;
+      line-height: 1 !important;
+      text-indent: 0 !important;
     }
 
     .sch-overlay {
