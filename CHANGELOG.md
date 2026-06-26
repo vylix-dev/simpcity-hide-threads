@@ -12,6 +12,11 @@ All notable changes to SimpCity Hide Threads are documented here. This file is t
 
 ### Security
 
+## [1.1.6] - 2026-06-26
+
+### Fixed
+- Kept the inline Hide button visible beside long thread titles by reserving button space in the title row.
+
 ## [1.1.5] - 2026-06-26
 
 ### Changed

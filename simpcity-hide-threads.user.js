@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SimpCity Hide Threads
 // @namespace    https://github.com/vylix-dev/simpcity-hide-threads
-// @version      1.1.5
+// @version      1.1.6
 // @description  Persistently hide SimpCity threads and manage your hidden-thread list.
 // @author       vylix-dev
 // @license      MIT
@@ -47,8 +47,22 @@
   const CSS = String.raw`
     @import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Teko:wght@500;600;700&display=swap");
 
+    .sch-title-host {
+      display: flex !important;
+      align-items: flex-start !important;
+      gap: 8px !important;
+      min-width: 0 !important;
+    }
+
+    .sch-title-host > a[href*="/threads/"] {
+      flex: 1 1 auto !important;
+      min-width: 0 !important;
+      overflow-wrap: anywhere !important;
+    }
+
     .sch-hide-btn {
       display: inline-flex !important;
+      flex: 0 0 auto !important;
       align-items: center !important;
       justify-content: center !important;
       box-sizing: border-box !important;
@@ -73,6 +87,11 @@
       white-space: nowrap !important;
       transition: background 120ms ease, border-color 120ms ease, transform 120ms ease !important;
       vertical-align: middle !important;
+    }
+
+    .sch-title-host .sch-hide-btn {
+      margin-top: 1px !important;
+      margin-left: auto !important;
     }
 
     .sch-hide-btn:hover,
@@ -836,6 +855,7 @@
 
     const target = row.querySelector('.structItem-title') || row.querySelector('h3') || row.querySelector(THREAD_LINK_SELECTOR)?.parentElement;
     if (!target) return;
+    target.classList.add('sch-title-host');
 
     const button = createElement('button', {
       type: 'button',
