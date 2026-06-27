@@ -12,6 +12,11 @@ All notable changes to SimpCity Hide Threads are documented here. This file is t
 
 ### Security
 
+## [1.1.9] - 2026-06-27
+
+### Changed
+- Removed the retired alternate domain from supported matches.
+
 ## [1.1.8] - 2026-06-26
 
 ### Fixed

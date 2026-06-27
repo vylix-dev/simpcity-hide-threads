@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SimpCity Hide Threads
 // @namespace    https://github.com/vylix-dev/simpcity-hide-threads
-// @version      1.1.8
+// @version      1.1.9
 // @description  Persistently hide SimpCity threads and manage your hidden-thread list.
 // @author       vylix-dev
 // @license      MIT
@@ -13,9 +13,6 @@
 // @supportURL   https://github.com/vylix-dev/simpcity-hide-threads/issues
 // @updateURL    https://raw.githubusercontent.com/vylix-dev/simpcity-hide-threads/main/simpcity-hide-threads.meta.js
 // @downloadURL  https://raw.githubusercontent.com/vylix-dev/simpcity-hide-threads/main/simpcity-hide-threads.user.js
-// @match        *://simpcity.su/*
-// @match        *://www.simpcity.su/*
-// @match        *://*.simpcity.su/*
 // @match        *://simpcity.cr/*
 // @match        *://www.simpcity.cr/*
 // @match        *://*.simpcity.cr/*
@@ -824,9 +821,9 @@
   }
 
   function getThreadUrlFallback(id) {
-    const currentOrigin = window.location && /^https:\/\/(?:[^/]+\.)?simpcity\.(?:su|cr)$/i.test(window.location.origin)
+    const currentOrigin = window.location && /^https:\/\/(?:[^/]+\.)?simpcity\.cr$/i.test(window.location.origin)
       ? window.location.origin
-      : 'https://simpcity.su';
+      : 'https://simpcity.cr';
 
     return `${currentOrigin}/threads/${id}/`;
   }
@@ -835,9 +832,7 @@
     try {
       const url = new URL(href || fallback, fallback);
       const hostname = url.hostname.toLowerCase();
-      const allowedHost = hostname === 'simpcity.su' ||
-        hostname.endsWith('.simpcity.su') ||
-        hostname === 'simpcity.cr' ||
+      const allowedHost = hostname === 'simpcity.cr' ||
         hostname.endsWith('.simpcity.cr');
 
       return url.protocol === 'https:' && allowedHost ? url.href : fallback;
