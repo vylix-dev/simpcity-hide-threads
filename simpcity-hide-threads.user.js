@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SimpCity Hide Threads
 // @namespace    https://github.com/vylix-dev/simpcity-hide-threads
-// @version      1.1.9
+// @version      1.1.10
 // @description  Persistently hide SimpCity threads and manage your hidden-thread list.
 // @author       vylix-dev
 // @license      MIT
@@ -1002,6 +1002,20 @@
     }
   }
 
+  function isWatchedThread(row) {
+    if (!row || typeof row.querySelector !== 'function') return false;
+    if (row.querySelector('.structItem-status--watched')) return true;
+
+    return Array.from(row.querySelectorAll('.structItem-status, [aria-label], [title]')).some((node) => {
+      const label = `${node.getAttribute('aria-label') || ''} ${node.getAttribute('title') || ''}`.toLowerCase();
+      return label.includes('thread watched') || label.trim() === 'watched';
+    });
+  }
+
+  function removeHideButton(row) {
+    row.querySelectorAll('.sch-hide-btn').forEach((button) => button.remove());
+  }
+
   function addHideButton(row, info) {
     if (row.querySelector('.sch-hide-btn')) return;
 
@@ -1032,6 +1046,10 @@
     const hiddenIds = new Set(hidden.map((item) => item.id));
     const scope = root && typeof root.querySelectorAll === 'function' ? root : document;
 
+    scope.querySelectorAll(THREAD_ROW_SELECTOR).forEach((row) => {
+      if (row.dataset.schProcessed === 'true' && isWatchedThread(row)) removeHideButton(row);
+    });
+
     scope.querySelectorAll(UNPROCESSED_THREAD_SELECTOR).forEach((row) => {
       const info = getThreadInfo(row);
       if (!info) return;
@@ -1040,6 +1058,12 @@
 
       if (hiddenIds.has(info.id)) {
         hideRow(row);
+        row.dataset.schProcessed = 'true';
+        return;
+      }
+
+      if (isWatchedThread(row)) {
+        removeHideButton(row);
         row.dataset.schProcessed = 'true';
         return;
       }
@@ -1314,14 +1338,23 @@
     registerMenuCommands();
 
     const observer = new MutationObserver((mutationList) => {
-      const hasAddedElement = mutationList.some((mutation) => Array.from(mutation.addedNodes || []).some((node) => (
-        node.nodeType === Node.ELEMENT_NODE
-      )));
+      const shouldScan = mutationList.some((mutation) => {
+        const hasAddedElement = Array.from(mutation.addedNodes || []).some((node) => node.nodeType === Node.ELEMENT_NODE);
+        if (hasAddedElement) return true;
 
-      if (hasAddedElement) queueScan();
+        if (mutation.type !== 'attributes' || !(mutation.target instanceof Element)) return false;
+        return Boolean(mutation.target.closest(THREAD_ROW_SELECTOR));
+      });
+
+      if (shouldScan) queueScan();
     });
 
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, {
+      attributeFilter: ['aria-label', 'class', 'title'],
+      attributes: true,
+      childList: true,
+      subtree: true,
+    });
   }
 
   if (document.readyState === 'loading') {

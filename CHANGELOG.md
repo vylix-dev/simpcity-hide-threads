@@ -12,6 +12,11 @@ All notable changes to SimpCity Hide Threads are documented here. This file is t
 
 ### Security
 
+## [1.1.10] - 2026-06-30
+
+### Changed
+- Skipped inline hide buttons on watched threads.
+
 ## [1.1.9] - 2026-06-27
 
 ### Changed

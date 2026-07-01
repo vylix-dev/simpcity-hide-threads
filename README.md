@@ -20,6 +20,7 @@ Keep `@version` in `simpcity-hide-threads.user.js`, `simpcity-hide-threads.meta.
 ## Features
 
 - Adds inline Hide buttons to SimpCity thread rows.
+- Skips the Hide button on watched threads so followed content is not hidden accidentally.
 - Stores hidden threads under the existing `simpcity_hidden_threads_v1` key.
 - Hides matching threads on current and dynamically inserted thread lists.
 - Provides a Tampermonkey menu command for managing hidden threads.
